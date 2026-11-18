@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sistema Financeiro</title>
+<style>
+  :root {
+    --bg: #f1f5f9;
+    --card: #ffffff;
+    --text: #0f172a;
+    --muted: #64748b;
+    --primary: #2563eb;
+    --primary-hover: #1d4ed8;
+    --ok: #10b981;
+    --ok-bg: #ecfdf5;
+    --ok-text: #065f46;
+    --bad: #ef4444;
+    --bad-bg: #fef2f2;
+    --bad-text: #991b1b;
+    --line: #e2e8f0;
+    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+  }
+  :root[data-theme="dark"] {
+    --bg: #0f172a;
+    --card: #1e293b;
+    --text: #f8fafc;
+    --muted: #94a3b8;
+    --primary: #3b82f6;
+    --primary-hover: #2563eb;
+    --ok: #34d399;
+    --ok-bg: rgba(16, 185, 129, 0.15);
+    --ok-text: #6ee7b7;
+    --bad: #f87171;
+    --bad-bg: rgba(239, 68, 68, 0.15);
+    --bad-text: #fca5a5;
+    --line: #334155;
+    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+  }
+  :root[data-theme="dark"] input,
+  :root[data-theme="dark"] select,
+  :root[data-theme="dark"] textarea,
+  :root[data-theme="dark"] dialog {
+    background: #0f172a;
+    color: var(--text);
+  }
+  :root[data-theme="dark"] button.secondary,
+  :root[data-theme="dark"] th,
+  :root[data-theme="dark"] tbody tr:hover,
+  :root[data-theme="dark"] .badge {
+    background: #334155;
+    color: var(--text);
+  }
+  :root[data-theme="dark"] button.secondary:hover:not(:disabled) {
+    background: #475569;
+  }
+  :root[data-theme="dark"] .badge.in { background: var(--ok-bg); color: var(--ok-text); }
+  :root[data-theme="dark"] .badge.out { background: var(--bad-bg); color: var(--bad-text); }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  body {
+    margin: 0;
+    font-family: 'Inter', system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+  }
+  header.top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 28px;
+    background: var(--card);
+    border-bottom: 1px solid var(--line);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  header.top .brand { display: flex; align-items: center; gap: 10px; font-size: 19px; font-weight: 700; color: var(--text); }
+  header.top .user-actions { display: flex; align-items: center; gap: 12px; font-size: 14px; color: var(--muted); }
+  main { max-width: 1100px; margin: 28px auto; padding: 0 20px 40px; }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: var(--shadow);
+  }
+  .auth { max-width: 420px; margin: 60px auto; padding: 32px; }
+  .auth h1 { text-align: center; font-size: 24px; margin-bottom: 6px; }
+  .auth .subtitle { text-align: center; color: var(--muted); font-size: 14px; margin-bottom: 20px; }
+  h1, h2 { margin: 0 0 16px; font-weight: 700; }
+  h2 { font-size: 18px; }
+  label { display: block; font-size: 13px; font-weight: 600; color: var(--text); margin: 14px 0 6px; }
+  input, select, textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    font: inherit;
+    font-size: 14px;
+    background: #fff;
+    color: var(--text);
+    transition: border-color .15s, box-shadow .15s;
+  }
+  input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+  }
+  button {
+    font: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    border: 0;
+    border-radius: 10px;
+    padding: 10px 18px;
+    background: var(--primary);
+    color: #fff;
+    transition: background .15s, transform .05s;
+  }
+  button:hover:not(:disabled) { background: var(--primary-hover); }
+  button:active:not(:disabled) { transform: scale(0.99); }
+  button.secondary { background: #f8fafc; color: var(--text); border: 1px solid var(--line); }
+  button.secondary:hover:not(:disabled) { background: #f1f5f9; }
+  button.ghost { background: transparent; color: var(--primary); padding: 6px 10px; }
+  button.ghost:hover:not(:disabled) { background: rgba(37, 99, 235, 0.08); }
+  button.danger { background: var(--bad); }
+  button.danger:hover:not(:disabled) { background: #dc2626; }
+  button.small { padding: 6px 12px; font-size: 13px; border-radius: 8px; }
+  button:disabled { opacity: .55; cursor: not-allowed; }
+  .full { width: 100%; margin-top: 20px; padding: 12px; }
+  .links { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; }
+  .msg { padding: 12px 16px; border-radius: 12px; margin-bottom: 18px; font-size: 14px; font-weight: 500; }
+  .msg.error { background: var(--bad-bg); color: var(--bad-text); border: 1px solid #fecaca; }
+  .msg.success { background: var(--ok-bg); color: var(--ok-text); border: 1px solid #a7f3d0; }
+
+  /* Cards de Resumo */
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 20px; }
+  .stat { position: relative; overflow: hidden; border-left: 4px solid var(--primary); }
+  .stat.income { border-left-color: var(--ok); }
+  .stat.expense { border-left-color: var(--bad); }
+  .stat small { color: var(--muted); font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em; }
+  .stat div { font-size: 26px; font-weight: 800; margin-top: 6px; letter-spacing: -0.02em; }
+  .pos { color: var(--ok); }
+  .neg { color: var(--bad); }
+
+  /* Barra visual de proporção */
+  .ratio-card { margin-bottom: 20px; padding: 18px 24px; }
+  .ratio-header { display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; margin-bottom: 8px; color: var(--muted); }
+  .ratio-bar { height: 10px; background: var(--line); border-radius: 99px; overflow: hidden; display: flex; }
+  .ratio-in { background: var(--ok); height: 100%; transition: width .4s ease; }
+  .ratio-out { background: var(--bad); height: 100%; transition: width .4s ease; }
+
+  /* Barra de ferramentas e Tabela */
+  .section-head { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 14px; }
+  .section-head h2 { margin: 0; }
+  .head-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  .toolbar { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; }
+  .toolbar > * { flex: 1 1 160px; }
+  .tablewrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th, td { text-align: left; padding: 12px 14px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  th { background: #f8fafc; color: var(--muted); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; }
+  tbody tr:last-child td { border-bottom: 0; }
+  tbody tr:hover { background: #f8fafc; }
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 99px; font-size: 12px; font-weight: 600; background: #f1f5f9; color: #334155; }
+  .badge.in { background: var(--ok-bg); color: var(--ok-text); }
+  .badge.out { background: var(--bad-bg); color: var(--bad-text); }
+  .pager { display: flex; gap: 12px; align-items: center; justify-content: center; margin-top: 18px; font-size: 14px; color: var(--muted); }
+
+  /* Modal */
+  dialog { border: 0; border-radius: 16px; padding: 24px; width: min(500px, 94vw); box-shadow: 0 20px 25px -5px rgba(0,0,0,0.15); }
+  dialog::backdrop { background: rgba(15, 23, 42, 0.5); backdrop-filter: blur(2px); }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .tag { padding: 3px 10px; border-radius: 99px; font-size: 12px; font-weight: 600; }
+  .tag.active { background: var(--ok-bg); color: var(--ok-text); }
+  .tag.inactive { background: var(--bad-bg); color: var(--bad-text); }
+
+  @media (max-width: 600px) {
+    header.top { padding: 12px 16px; }
+    .row2 { grid-template-columns: 1fr; }
+    .stat div { font-size: 22px; }
+  }
+</style>
+</head>
+<body>
+<header class="top" id="topbar" hidden>
+  <div class="brand">💰 <span>Sistema Financeiro</span></div>
+  <div class="user-actions">
+    <button class="secondary small" id="btnTheme" title="Alternar tema">🌙 Escuro</button>
+    <button class="secondary small" id="btnToggleAdmin" hidden>Alternar visão</button>
+    <span id="whoami"></span>
+    <button class="ghost small" id="btnLogout">Sair</button>
+  </div>
+</header>
+
+<main>
+  <div id="flash" class="msg" hidden></div>
+
+  <!-- LOGIN -->
+  <section class="screen auth card" id="screen-login" hidden>
+    <h1>Bem-vindo</h1>
+    <p class="subtitle">Acesse sua conta para gerenciar suas finanças</p>
+    <form id="formLogin">
+      <label>E-mail</label><input name="email" type="email" placeholder="seu@email.com" required autocomplete="username">
+      <label>Senha</label><input name="password" type="password" placeholder="••••••••••" required autocomplete="current-password">
+      <button class="full" type="submit">Entrar</button>
+    </form>
+    <div class="links">
+      <button class="ghost" data-go="register">Cadastre-se</button>
+      <button class="ghost" data-go="forgot">Esqueci minha senha</button>
+    </div>
+  </section>
+
+  <!-- CADASTRO -->
+  <section class="screen auth card" id="screen-register" hidden>
+    <h1>Criar conta</h1>
+    <p class="subtitle">Preencha seus dados para começar</p>
+    <form id="formRegister">
+      <label>Nome completo</label><input name="name" placeholder="Seu nome" required minlength="2" autocomplete="name">
+      <label>E-mail</label><input name="email" type="email" placeholder="seu@email.com" required autocomplete="email">
+      <label>Senha (10+ caracteres, maiúscula, minúscula e número)</label><input name="password" type="password" required minlength="10" autocomplete="new-password">
+      <label>Confirmar senha</label><input name="confirmPassword" type="password" required autocomplete="new-password">
+      <button class="full" type="submit">Criar minha conta</button>
+    </form>
+    <div class="links"><button class="ghost" data-go="login">Voltar ao login</button></div>
+  </section>
+
+  <!-- ESQUECI A SENHA -->
+  <section class="screen auth card" id="screen-forgot" hidden>
+    <h1>Recuperar senha</h1>
+    <p class="subtitle">Enviaremos um link de redefinição para seu e-mail</p>
+    <form id="formForgot">
+      <label>E-mail</label><input name="email" type="email" placeholder="seu@email.com" required>
+      <button class="full" type="submit">Enviar link</button>
+    </form>
+    <div class="links"><button class="ghost" data-go="login">Voltar ao login</button></div>
+  </section>
+
+<!-- REDEFINIR SENHA -->
+  <section class="screen auth card" id="screen-reset" hidden>
+    <h1>Nova senha</h1>
+    <p class="subtitle">Defina sua nova senha de acesso</p>
+    <form id="formReset">
+      <label>Nova senha</label><input name="password" type="password" required minlength="10" autocomplete="new-password">
+      <label>Confirmar nova senha</label><input name="confirmPassword" type="password" required autocomplete="new-password">
+      <button class="full" type="submit">Redefinir senha</button>
+    </form>
+  </section> 
+
+<!-- DASHBOARD DO USUÁRIO -->
+  <section class="screen" id="screen-dashboard" hidden>
+    <div class="grid">
+      <div class="card stat income"><small>Total recebido</small><div id="sIncome" class="pos">—</div></div>
+      <div class="card stat expense"><small>Total gasto</small><div id="sExpenses" class="neg">—</div></div>
+      <div class="card stat"><small>Resultado líquido</small><div id="sBalance">—</div></div>
+      <div class="card stat"><small>Transações</small><div id="sCount">—</div></div>
+    </div>
+
+    <div class="card ratio-card" id="ratioBox" hidden>
+      <div class="ratio-header">
+        <span id="ratioInLabel">Recebimentos: 0%</span>
+        <span id="ratioOutLabel">Despesas: 0%</span>
+      </div>
+      <div class="ratio-bar">
+        <div class="ratio-in" id="ratioInBar" style="width:0%"></div>
+        <div class="ratio-out" id="ratioOutBar" style="width:0%"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-head">
+        <h2>Transações</h2>
+        <div class="head-actions">
+          <button class="secondary" id="btnExportCsv">⬇ Exportar CSV</button>
+          <button id="btnNewTx">+ Nova transação</button>
+        </div>
+      </div>
+      <div class="toolbar">
+        <input id="fSearch" placeholder="🔍 Pesquisar descrição...">
+        <select id="fType"><option value="">Todos os tipos</option><option value="income">Recebimentos</option><option value="expense">Despesas</option></select>
+        <input id="fCategory" placeholder="Categoria (exata)" list="catList">
+        <select id="fOrder"><option value="desc">Mais recentes</option><option value="asc">Mais antigas</option></select>
+      </div>
+      <div class="tablewrap"><table>
+        <thead><tr><th>Descrição</th><th>Valor</th><th>Tipo</th><th>Categoria</th><th>Data</th><th>Pagamento</th><th>Ações</th></tr></thead>
+        <tbody id="txBody"></tbody>
+      </table></div>
+      <div class="pager"><button class="secondary small" id="txPrev">‹ Anterior</button><span id="txInfo"></span><button class="secondary small" id="txNext">Próxima ›</button></div>
+    </div>
+  </section>
+
+  <!-- DASHBOARD ADMIN -->
+  <section class="screen" id="screen-admin" hidden>
+    <div class="grid">
+      <div class="card stat"><small>Total de Usuários</small><div id="aTotal">—</div></div>
+      <div class="card stat income"><small>Usuários Ativos</small><div id="aActive" class="pos">—</div></div>
+      <div class="card stat expense"><small>Usuários Inativos</small><div id="aInactive" class="neg">—</div></div>
+    </div>
+    <div class="card">
+      <h2>Gerenciar Usuários</h2>
+      <div class="toolbar">
+        <input id="uSearch" placeholder="🔍 Pesquisar nome ou e-mail...">
+        <select id="uStatus"><option value="">Todos os status</option><option value="active">Ativos</option><option value="inactive">Inativos</option></select>
+      </div>
+      <div class="tablewrap"><table>
+        <thead><tr><th>Nome</th><th>E-mail</th><th>Cadastro</th><th>Status</th><th>Ação</th></tr></thead>
+        <tbody id="uBody"></tbody>
+      </table></div>
+      <div class="pager"><button class="secondary small" id="uPrev">‹ Anterior</button><span id="uInfo"></span><button class="secondary small" id="uNext">Próxima ›</button></div>
+    </div>
+  </section>
+</main>
+
+<datalist id="catList">
+  <option value="Salário">
+  <option value="Vendas / Serviços">
+  <option value="Alimentação">
+  <option value="Moradia">
+  <option value="Transporte">
+  <option value="Saúde">
+  <option value="Educação">
+  <option value="Lazer">
+  <option value="Contas / Fixas">
+  <option value="Investimentos">
+</datalist>
+
+<!-- MODAL TRANSAÇÃO -->
+<dialog id="txDialog">
+  <form id="formTx">
+    <h2 id="txTitle">Nova transação</h2>
+    <label>Descrição</label><input name="description" placeholder="Ex: Supermercado, Salário..." required maxlength="200">
+    <div class="row2">
+      <div><label>Valor (R$)</label><input name="amount" required inputmode="decimal" placeholder="0,00"></div>
+      <div><label>Tipo</label><select name="type"><option value="expense">Despesa (-)</option><option value="income">Recebimento (+)</option></select></div>
+    </div>
+    <div class="row2">
+      <div><label>Categoria</label><input name="category" list="catList" placeholder="Escolha ou digite" required maxlength="60"></div>
+      <div><label>Data</label><input name="transaction_date" type="date" required></div>
+    </div>
+    <label>Forma de pagamento</label>
+    <select name="payment_method">
+      <option value="pix">Pix</option><option value="cash">Dinheiro</option><option value="debit">Débito</option>
+      <option value="credit">Crédito</option><option value="transfer">Transferência</option><option value="boleto">Boleto</option><option value="other">Outro</option>
+    </select>
+    <label>Observações (opcional)</label><textarea name="notes" rows="2" maxlength="1000" placeholder="Detalhes adicionais..."></textarea>
+    <div class="links"><button type="button" class="secondary" id="txCancel">Cancelar</button><button type="submit">Salvar transação</button></div>
+  </form>
+</dialog>
+
+<script>
+const API_URL = '';
+const $ = (s) => document.querySelector(s);
+const brl = (v) => Number(v).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+const METHODS = { pix:'Pix', cash:'Dinheiro', debit:'Débito', credit:'Crédito', transfer:'Transferência', boleto:'Boleto', other:'Outro' };
+
+let currentUser = null;
+let currentArea = 'dashboard';
+
+async function api(path, { method = 'GET', body } = {}, retry = true) {
+  const res = await fetch(`${API_URL}${path}`, {
+    method,
+    credentials: 'same-origin',
+    headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'fetch' },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  if (res.status === 401 && retry && !path.startsWith('/api/auth/')) {
+    const r = await fetch(`${API_URL}/api/auth/refresh`, { method: 'POST', credentials: 'same-origin', headers: { 'X-Requested-With': 'fetch' } });
+    if (r.ok) return api(path, { method, body }, false);
+    showScreen('login');
+  }
+  if (res.status === 204) return null;
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw Object.assign(new Error(data.error || 'Erro inesperado'), { status: res.status, code: data.code, details: data.details });
+  return data;
+}
+
+function el(tag, text, cls) { const e = document.createElement(tag); if (text !== undefined) e.textContent = text; if (cls) e.className = cls; return e; }
+function td(text, cls) { return el('td', text, cls); }
+
+function flash(text, kind = 'success') {
+  const f = $('#flash'); f.textContent = text; f.className = 'msg ' + kind; f.hidden = false;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+function clearFlash() { $('#flash').hidden = true; }
+function errText(err) {
+  const msgs = {
+    EMAIL_EXISTS: 'Este e-mail já tem conta. Faça login ou recupere a senha.',
+    SUPABASE_UNREACHABLE: 'Servidor indisponível no momento. Tente em alguns minutos.',
+    EMAIL_RATE_LIMIT: 'Muitos e-mails enviados agora. Aguarde alguns minutos.',
+    SMTP_NOT_CONFIGURED: 'Envio de e-mails ainda não configurado. Avise o administrador.',
+  };
+  return msgs[err.code] || (err.details && err.details[0] && err.details[0].message) || err.message;
+}
+
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach((s) => (s.hidden = true));
+  $('#screen-' + name).hidden = false;
+  $('#topbar').hidden = !(name === 'dashboard' || name === 'admin');
+  currentArea = name;
+  if (currentUser && currentUser.role === 'admin') {
+    const btnToggle = $('#btnToggleAdmin');
+    btnToggle.hidden = false;
+    btnToggle.textContent = name === 'admin' ? '💰 Minhas Finanças' : '⚙️ Painel Admin';
+  }
+  if (name === 'dashboard') { loadSummary(); loadTx(); }
+  if (name === 'admin') { loadAdminStats(); loadUsers(); }
+}
+
+async function withBusy(btn, fn) {
+  btn.disabled = true;
+  try { await fn(); } finally { btn.disabled = false; }
+}
+
+document.querySelectorAll('[data-go]').forEach((b) => b.addEventListener('click', () => { clearFlash(); showScreen(b.dataset.go); }));
+
+$('#btnToggleAdmin').addEventListener('click', () => {
+  clearFlash();
+  showScreen(currentArea === 'admin' ? 'dashboard' : 'admin');
+});
+
+$('#formLogin').addEventListener('submit', async (e) => {
+  e.preventDefault(); clearFlash();
+  const f = e.target;
+  await withBusy(f.querySelector('button'), async () => {
+    try {
+      const r = await api('/api/auth/login', { method: 'POST', body: { email: f.email.value, password: f.password.value } });
+      f.reset();
+      enter(r.user, r.area);
+    } catch (err) { flash(errText(err), 'error'); }
+  });
+});
+
+$('#formRegister').addEventListener('submit', async (e) => {
+  e.preventDefault(); clearFlash();
+  const f = e.target;
+  await withBusy(f.querySelector('button'), async () => {
+    try {
+      const r = await api('/api/auth/register', { method: 'POST', body: { name: f.name.value, email: f.email.value, password: f.password.value, confirmPassword: f.confirmPassword.value } });
+      f.reset(); flash(r.message, 'success');
+    } catch (err) { flash(errText(err), 'error'); }
+  });
+});
+
+$('#formForgot').addEventListener('submit', async (e) => {
+  e.preventDefault(); clearFlash();
+  const f = e.target;
+  await withBusy(f.querySelector('button'), async () => {
+    try {
+      const r = await api('/api/auth/forgot-password', { method: 'POST', body: { email: f.email.value } });
+      flash(r.message, 'success');
+    } catch (err) { flash(errText(err), 'error'); }
+  });
+});
+
+$('#formReset').addEventListener('submit', async (e) => {
+  e.preventDefault(); clearFlash();
+  const f = e.target;
+  const params = new URLSearchParams(location.hash.slice(1));
+  const accessToken = params.get('access_token');
+  await withBusy(f.querySelector('button'), async () => {
+    try {
+      const r = await api('/api/auth/reset-password', { method: 'POST', body: { accessToken, password: f.password.value, confirmPassword: f.confirmPassword.value } });
+      history.replaceState(null, '', location.pathname);
+      f.reset(); showScreen('login'); flash(r.message, 'success');
+    } catch (err) { flash(errText(err), 'error'); }
+  });
+});
+
+$('#btnLogout').addEventListener('click', async () => {
+  try { await api('/api/auth/logout', { method: 'POST' }); } catch {}
+  currentUser = null;
+  $('#btnToggleAdmin').hidden = true;
+  showScreen('login');
+});
+
+function enter(user, area) {
+  currentUser = user;
+  $('#whoami').textContent = 'Olá, ' + user.name;
+  showScreen(area === 'admin' ? 'admin' : 'dashboard');
+}
+
+async function loadSummary() {
+  try {
+    const s = await api('/api/dashboard/summary');
+    const inc = Number(s.totalIncome || 0);
+    const exp = Number(s.totalExpenses || 0);
+    $('#sIncome').textContent = brl(inc);
+    $('#sExpenses').textContent = brl(exp);
+    const b = $('#sBalance'); b.textContent = brl(s.balance); b.className = Number(s.balance) >= 0 ? 'pos' : 'neg';
+    $('#sCount').textContent = s.transactionCount;
+
+    const total = inc + exp;
+    if (total > 0) {
+      const pIn = Math.round((inc / total) * 100);
+      const pOut = 100 - pIn;
+      $('#ratioBox').hidden = false;
+      $('#ratioInLabel').textContent = `Recebimentos (${pIn}%)`;
+      $('#ratioOutLabel').textContent = `Despesas (${pOut}%)`;
+      $('#ratioInBar').style.width = pIn + '%';
+      $('#ratioOutBar').style.width = pOut + '%';
+    } else {
+      $('#ratioBox').hidden = true;
+    }
+  } catch (err) { flash(errText(err), 'error'); }
+}
+
+const tx = { page: 1, totalPages: 1, items: [] };
+async function loadTx() {
+  const p = new URLSearchParams({ page: tx.page, pageSize: 10, order: $('#fOrder').value });
+  if ($('#fType').value) p.set('type', $('#fType').value);
+  if ($('#fCategory').value.trim()) p.set('category', $('#fCategory').value.trim());
+  if ($('#fSearch').value.trim()) p.set('search', $('#fSearch').value.trim());
+  try {
+    const r = await api('/api/transactions?' + p);
+    tx.items = r.data; tx.totalPages = Math.max(r.pagination.totalPages, 1);
+    const body = $('#txBody'); body.replaceChildren();
+    if (!r.data.length) {
+      const row = el('tr'); const c = td('Nenhuma transação encontrada. Clique em "+ Nova transação" para começar.'); c.colSpan = 7; c.style.textAlign = 'center'; c.style.color = 'var(--muted)'; row.append(c); body.append(row);
+    }
+    for (const t of r.data) {
+      const row = el('tr');
+      const isExp = t.type === 'expense';
+      const typeCell = el('td');
+      typeCell.append(el('span', isExp ? 'Despesa' : 'Recebimento', 'badge ' + (isExp ? 'out' : 'in')));
+      const catCell = el('td');
+      catCell.append(el('span', t.category, 'badge'));
+
+      row.append(
+        td(t.description),
+        td((isExp ? '− ' : '+ ') + brl(t.amount), isExp ? 'neg' : 'pos'),
+        typeCell,
+        catCell,
+        td(t.transaction_date.split('-').reverse().join('/')),
+        td(METHODS[t.payment_method] || t.payment_method)
+      );
+      const act = el('td');
+      const be = el('button', 'Editar', 'secondary small'); be.addEventListener('click', () => openTx(t));
+      const bd = el('button', 'Excluir', 'small danger'); bd.style.marginLeft = '6px';
+      bd.addEventListener('click', () => delTx(t.id));
+      act.append(be, bd); row.append(act); body.append(row);
+    }
+    $('#txInfo').textContent = `Página ${tx.page} de ${tx.totalPages}`;
+    $('#txPrev').disabled = tx.page <= 1; $('#txNext').disabled = tx.page >= tx.totalPages;
+  } catch (err) { flash(errText(err), 'error'); }
+}
+
+$('#btnExportCsv').addEventListener('click', () => {
+  if (!tx.items.length) return flash('Não há transações na tela para exportar.', 'error');
+  const header = ['Descricao', 'Valor', 'Tipo', 'Categoria', 'Data', 'Pagamento', 'Observacoes'];
+  const rows = tx.items.map(t => [
+    `"${(t.description || '').replace(/"/g, '""')}"`,
+    String(t.amount).replace('.', ','),
+    t.type === 'income' ? 'Recebimento' : 'Despesa',
+    `"${(t.category || '').replace(/"/g, '""')}"`,
+    t.transaction_date.split('-').reverse().join('/'),
+    METHODS[t.payment_method] || t.payment_method,
+    `"${(t.notes || '').replace(/"/g, '""')}"`
+  ].join(';'));
+  const csv = '\uFEFF' + [header.join(';'), ...rows].join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `transacoes_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+});
+
+$('#txPrev').addEventListener('click', () => { tx.page--; loadTx(); });
+$('#txNext').addEventListener('click', () => { tx.page++; loadTx(); });
+let timer;
+for (const id of ['#fSearch', '#fCategory']) $(id).addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(() => { tx.page = 1; loadTx(); }, 350); });
+for (const id of ['#fType', '#fOrder']) $(id).addEventListener('change', () => { tx.page = 1; loadTx(); });
+
+let editingId = null;
+function openTx(t) {
+  const f = $('#formTx'); f.reset(); editingId = t ? t.id : null;
+  $('#txTitle').textContent = t ? 'Editar transação' : 'Nova transação';
+  if (t) { for (const k of ['description','type','category','transaction_date','payment_method']) f[k].value = t[k]; f.amount.value = String(t.amount).replace('.', ','); f.notes.value = t.notes || ''; }
+  else f.transaction_date.value = new Date().toISOString().slice(0, 10);
+  $('#txDialog').showModal();
+}
+$('#btnNewTx').addEventListener('click', () => openTx(null));
+$('#txCancel').addEventListener('click', () => $('#txDialog').close());
+$('#formTx').addEventListener('submit', async (e) => {
+  e.preventDefault(); const f = e.target;
+  const body = { description: f.description.value, amount: f.amount.value, type: f.type.value, category: f.category.value, transaction_date: f.transaction_date.value, payment_method: f.payment_method.value, notes: f.notes.value || null };
+  await withBusy(f.querySelector('button[type=submit]'), async () => {
+    try {
+      await api(editingId ? `/api/transactions/${editingId}` : '/api/transactions', { method: editingId ? 'PUT' : 'POST', body });
+      $('#txDialog').close(); clearFlash(); loadSummary(); loadTx();
+      flash(editingId ? 'Transação atualizada!' : 'Transação adicionada!', 'success');
+    } catch (err) { flash(errText(err), 'error'); $('#txDialog').close(); }
+  });
+});
+async function delTx(id) {
+  if (!confirm('Excluir esta transação?')) return;
+  try { await api(`/api/transactions/${id}`, { method: 'DELETE' }); loadSummary(); loadTx(); flash('Transação excluída.', 'success'); }
+  catch (err) { flash(errText(err), 'error'); }
+}
+
+async function loadAdminStats() {
+  try {
+    const s = await api('/api/admin/dashboard');
+    $('#aTotal').textContent = s.totalUsers; $('#aActive').textContent = s.activeUsers; $('#aInactive').textContent = s.inactiveUsers;
+  } catch (err) { flash(errText(err), 'error'); }
+}
+const us = { page: 1, totalPages: 1 };
+async function loadUsers() {
+  const p = new URLSearchParams({ page: us.page, pageSize: 10 });
+  if ($('#uStatus').value) p.set('status', $('#uStatus').value);
+  if ($('#uSearch').value.trim()) p.set('search', $('#uSearch').value.trim());
+  try {
+    const r = await api('/api/admin/users?' + p);
+    us.totalPages = Math.max(r.pagination.totalPages, 1);
+    const body = $('#uBody'); body.replaceChildren();
+    for (const u of r.data) {
+      const row = el('tr');
+      const st = el('td'); st.append(el('span', u.status === 'active' ? 'Ativo' : 'Inativo', 'tag ' + u.status));
+      row.append(td(u.name), td(u.email), td(new Date(u.created_at).toLocaleDateString('pt-BR')), st);
+      const act = el('td');
+      if (u.role !== 'admin') {
+        const next = u.status === 'active' ? 'inactive' : 'active';
+        const b = el('button', next === 'inactive' ? 'Desativar' : 'Ativar', 'small' + (next === 'inactive' ? ' danger' : ''));
+        b.addEventListener('click', async () => {
+          try { await api(`/api/users/${u.id}/status`, { method: 'PATCH', body: { status: next } }); loadAdminStats(); loadUsers(); }
+          catch (err) { flash(errText(err), 'error'); }
+        });
+        act.append(b);
+      }
+      row.append(act); body.append(row);
+    }
+    $('#uInfo').textContent = `Página ${us.page} de ${us.totalPages}`;
+    $('#uPrev').disabled = us.page <= 1; $('#uNext').disabled = us.page >= us.totalPages;
+  } catch (err) { flash(errText(err), 'error'); }
+}
+$('#uPrev').addEventListener('click', () => { us.page--; loadUsers(); });
+$('#uNext').addEventListener('click', () => { us.page++; loadUsers(); });
+$('#uSearch').addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(() => { us.page = 1; loadUsers(); }, 350); });
+$('#uStatus').addEventListener('change', () => { us.page = 1; loadUsers(); });
+
+async function boot() {
+  if (location.hash.includes('type=recovery')) return showScreen('reset');
+  if (new URLSearchParams(location.search).get('confirmado')) {
+    history.replaceState(null, '', location.pathname);
+    showScreen('login'); return flash('E-mail confirmado! Agora é só entrar.', 'success');
+  }
+  try {
+    const { user, area } = await api('/api/auth/me');
+    enter(user, area);
+  } catch { showScreen('login'); }
+}
+function applyTheme(dark) {
+  document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+  const btn = $('#btnTheme');
+  if (btn) btn.textContent = dark ? '☀️ Claro' : '🌙 Escuro';
+}
+applyTheme(localStorage.getItem('theme') === 'dark');
+$('#btnTheme').addEventListener('click', () => {
+  const isDark = document.documentElement.dataset.theme !== 'dark';
+  localStorage.setItem('theme', isDark ? 'dark' : 'light');
+  applyTheme(isDark);
+});
+boot();
+</script>
+</body>
+</html>
