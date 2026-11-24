@@ -641,7 +641,13 @@ app.use((err, req, res, next) => {
 if (!process.env.VERCEL) {
   app.use(express.static('public'));
 }
-
+// Rota inicial da API (para quem abrir o link do back-end)
+app.get('/', (req, res) => {
+  res.json({
+    status: 'ok',
+    message: 'API do Sistema Financeiro no ar. Use o sistema pelo link do front-end.'
+  });
+});
 module.exports = app;
 
 if (require.main === module) {
